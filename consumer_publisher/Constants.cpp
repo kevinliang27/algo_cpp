@@ -1,3 +1,3 @@
 #include <Constants.h>
 
-const char* Info = "Test";
+const char* MyFifo = "/tmp/myfifo";

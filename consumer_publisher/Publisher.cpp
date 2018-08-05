@@ -6,32 +6,47 @@
 #include<sys/stat.h>
 #include<unistd.h>
 #include<Constants.h>
-
+#include<Pipe.h>
+#include<thread>
+#include<functional>
+#include<fstream>
+#include<cstring>
 
 using namespace std;
 
+void publish(const char* fifoName, const char* fileName) {
+
+    ifstream ifs(fileName, ifstream::in);
+    while(ifs.good() && !ifs.eof()) 
+    {
+        //cout << "Please input:";
+        string line;
+        getline(ifs, line);
+        cout << "read line:"<< buf << endl;
+        NamedPipe pipe(fifoName, O_WRONLY);
+        write(pipe.fd(), buf, BlockSize);
+
+
+        /*
+        for (size_t s = 0;s<=line.size();s+=BlockSize) {
+            char buf[BlockSize+1];
+            memset(buf, 0, sizeof(buf));
+            int len = (line.size() - s+1) < BlockSize ? line.size() -s+1 : BlockSize;
+            memcpy(buf, line.c_str() + s, len);
+            cout << "block size:" << len << ", read:"<< buf << endl;
+            NamedPipe pipe(fifoName, O_WRONLY);
+            write(pipe.fd(), buf, BlockSize);
+        }
+        */
+        cout << "ifs.good:" << ifs.good() << ", ifs.eof:" << ifs.eof() << endl;
+    }
+    cout << "publisher completed" << endl;
+}
+
 int main()
 {
-    const char* myfifo = "/tmp/myfifo";
-    mkfifo(myfifo, 0666);
-    char arr1[80];
-    string  arr2;
-    while(1)
-    {
-        cout << "Please input:";
-        cin >> arr2;
-        cout << "finish reading" << endl;
-        //int fd = open(myfifo, O_WRONLY);
-        int fd = open(myfifo, O_RDWR);
-        cout << "open:" << fd << endl;
-        write(fd, arr2.c_str(),  arr2.size()+1);
-        cout << "write complete:" << fd << endl;
-        //close(fd);
-        //fd = open(myfifo, O_RDONLY);
-        //fd = open(myfifo, O_RDWR);
-        read(fd,arr1,sizeof(arr1));
-        cout << "User2 :" << arr1 << endl;
-        close(fd);
-    }
-    cout << "Hello world:"<< Info << endl;
+    mkfifo(MyFifo, 0666);
+    thread publishThread(bind(publish, MyFifo, "source.txt"));
+     
+    publishThread.join();
 }
